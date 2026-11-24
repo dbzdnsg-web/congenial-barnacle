@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>MBD SAAB MYTHICAL WORMS</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#08243b;color:white;font-family:Arial;touch-action:none}canvas{width:100%;height:100%;display:block;background:radial-gradient(#145579,#071b2d)}.hud{position:fixed;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;pointer-events:none}.pill{background:#061523dd;padding:10px 14px;border-radius:14px;font-weight:bold}#boost{position:fixed;right:20px;bottom:20px;width:76px;height:76px;border:0;border-radius:50%;background:#ffb52e;font-weight:bold}#hint{position:fixed;left:12px;bottom:25px;background:#061523cc;padding:10px;border-radius:12px;font-size:12px}
+#map{position:fixed;left:10px;top:64px;width:108px;height:108px;border:2px solid #9bd7ee;border-radius:12px;background:#061523dd}
+#board{position:fixed;right:10px;top:64px;width:124px;padding:8px;background:#061523dd;border:1px solid #6aa9c4;border-radius:12px;font-size:10px;line-height:1.5}
+#board strong{display:block;font-size:12px;margin-bottom:3px;color:#ffdf75}
+#board ol{margin:0;padding-left:19px}#start{position:fixed;inset:0;background:#031321dd;display:flex;align-items:center;justify-content:center;padding:20px}.card{background:#123e5b;padding:26px;border-radius:22px;text-align:center;width:min(360px,100%)}button.play{background:#25d98b;border:0;border-radius:12px;padding:15px;width:100%;font-size:18px;font-weight:bold}
+
+/* Reference-inspired arena HUD */
+html,body{background:#1260a8!important}
+canvas#c{background:radial-gradient(circle at 50% 45%,#287fc4 0%,#155b9d 68%,#0b3d76 100%)!important}
+.hud{top:12px;left:12px;right:12px;align-items:flex-start;gap:8px}
+.hud .pill{background:rgba(4,35,75,.82);border:1px solid rgba(145,205,255,.24);border-radius:7px;padding:9px 13px;box-shadow:0 3px 12px #06264b55}
+#board{left:12px;right:auto;top:12px;width:min(220px,42vw);padding:9px 11px;background:rgba(5,40,88,.72);border:0;border-radius:7px;font-size:12px;line-height:1.65;backdrop-filter:blur(4px)}
+#board strong{font-size:13px;color:#fff;margin-bottom:5px}
+#board ol{padding-left:19px}
+#map{left:auto;right:12px;top:74px;width:clamp(112px,17vw,170px);height:auto;aspect-ratio:1;border:2px solid rgba(160,215,255,.55);border-radius:4px;background:rgba(4,30,70,.75)}
+#hint{left:50%;transform:translateX(-50%);bottom:12px;background:rgba(5,40,88,.62);border:1px solid #78b7ed66;border-radius:20px;white-space:nowrap;padding:8px 13px;font-size:11px}
+#boost{display:none!important;right:calc(50% - 42px);bottom:25px;width:78px;height:78px;border:3px solid #5db8f5;background:linear-gradient(145deg,#0877c9,#064a91);color:white;box-shadow:0 5px 18px #002b5d99;font-size:13px}
+#start{background:linear-gradient(135deg,rgba(3,24,57,.90),rgba(4,67,119,.88));backdrop-filter:blur(5px)}
+.card{background:linear-gradient(150deg,#176ca8,#103b69);border:1px solid #83c9ff55;box-shadow:0 18px 55px #001d3c99}
+button.play{background:linear-gradient(90deg,#22d69a,#11a9c5);color:#052c48}
+@media(max-width:600px){
+ .hud{top:8px;left:8px;right:8px}
+ .hud .pill{font-size:12px;padding:8px 9px}
+ #board{top:8px;left:8px;width:43vw;font-size:10px;line-height:1.5;padding:7px}
+ #board strong{font-size:11px}
+ #map{top:92px;right:8px;width:112px}
+ #hint{bottom:10px;font-size:10px;max-width:72vw;overflow:hidden;text-overflow:ellipsis}
+ #boost{right:18px;bottom:22px;width:64px;height:64px}
+}
+
+.skinChoice{border:2px solid #7ab7e8;border-radius:11px;background:#092f56;color:#fff;padding:9px 3px;font-size:12px;font-weight:bold}
+.skinChoice.selected{border-color:#ffe45c;background:#175b88;box-shadow:0 0 12px #ffe45c66}
+@media(max-width:420px){.card{padding:17px}.skinChoice{font-size:11px;padding:8px 2px}}
+#boost.active{filter:brightness(1.35);transform:scale(1.08);box-shadow:0 0 24px #ffd84a}
+#powerStatus{position:fixed;top:58px;left:12px;z-index:5;display:flex;gap:5px;flex-wrap:wrap;max-width:85%;pointer-events:none}
+.powerTag{background:#082b55dd;border:1px solid #8ed5ff;border-radius:10px;padding:5px 8px;font-size:11px;font-weight:bold;color:#fff}
+
+#start{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:10px;background:radial-gradient(circle at 50% 15%,#247bc0,#061c48 75%);overflow:auto}
+.menuShell{width:min(760px,100%);max-height:96%;overflow:auto;border:2px solid #86caff;border-radius:20px;background:linear-gradient(145deg,#145a9b,#092e66 70%);box-shadow:0 18px 60px #00122dcc;color:#fff}
+.menuTop{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:linear-gradient(90deg,#0a3976,#176cb0);border-bottom:1px solid #8acbff66}
+.brandMark{display:flex;align-items:center;gap:8px;font-size:14px;line-height:1.05}.brandMark:first-letter{font-size:28px}.brandMark b{letter-spacing:1px;color:#ffe66d}
+.wallet{background:#062b5b;padding:8px 14px;border-radius:12px;border:1px solid #9bd7ff66}
+.menuTabs{display:flex;gap:5px;padding:8px;background:#082a59;overflow-x:auto}
+.tab{flex:1;min-width:84px;padding:10px 7px;border:1px solid #75b8ee;border-radius:10px;background:#12477e;color:#e8f5ff;font-weight:bold;font-size:12px}
+.tab.active{background:linear-gradient(#ffe77a,#ffb82c);color:#17345b;border-color:#fff2a8;box-shadow:0 0 12px #ffdc5c66}
+.menuContent{padding:16px;min-height:310px}.menuPage{display:none}.menuPage.active{display:block}
+.menuPage h2{text-align:center;margin:2px 0 4px;font-size:22px}.subline{text-align:center;color:#c4e4ff;margin:5px 0 16px;font-size:13px}
+.heroLogo{text-align:center;font-size:36px;font-weight:1000;line-height:.92;letter-spacing:3px;color:#ffdc57;text-shadow:0 4px 0 #8c3f1c,0 0 18px #ffb52c;margin:15px 0}
+.heroLogo span{color:#fff;text-shadow:0 4px 0 #13519a,0 0 18px #74d4ff}
+.homePreview{margin:12px auto 18px;max-width:360px;display:flex;align-items:center;justify-content:center;gap:10px;padding:13px;border-radius:14px;background:#062b59;border:1px solid #81c8ff66;font-size:22px}
+.homePreview span{font-size:12px;color:#c9e6ff}.homePreview b{font-size:12px;color:#ffe36a}
+#play{display:block;max-width:390px;margin:0 auto;background:linear-gradient(#5be58b,#0dbb72);border:2px solid #b6ffd2;color:#073a3b;border-radius:13px;padding:15px;font-size:20px;font-weight:1000;box-shadow:0 5px 0 #087b62}
+.homeShortcuts{display:flex;justify-content:center;gap:9px;margin-top:18px}.homeShortcuts button,.menuFooter button{background:#0b3970;border:1px solid #8acaff;color:#fff;border-radius:10px;padding:9px;font-weight:bold}
+.menuFooter{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;background:#062754;color:#9ed5ff;font-size:10px}
+.settingRow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;margin:8px 0;border-radius:11px;background:#0a3970;border:1px solid #72b8ee55;font-weight:bold}
+.toggle{min-width:62px;padding:8px;border-radius:9px;border:1px solid #a6dcff;background:#31577c;color:#fff;font-weight:bold}.toggle.on{background:#0bbd7a}
+.settingRow select{max-width:55%;padding:8px;border-radius:8px;background:#e8f5ff;color:#12345a}
+.smallNote{text-align:center;color:#b8ddff;font-size:11px;margin:12px 0}
+.workshopLayout{display:grid;grid-template-columns: minmax(110px, .8fr) 1.4fr;gap:12px;align-items:center}
+.snakePreview{min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:14px;background:radial-gradient(circle,#a24fe0,#3b237e);font-size:76px;border:2px solid #e4b8ff;box-shadow:inset 0 0 25px #fff3}
+.snakePreview small{font-size:12px;color:#fff;font-weight:bold}
+.skinGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.skinChoice{display:flex;align-items:center;justify-content:center;gap:6px;min-height:48px;border:2px solid #79bce9;border-radius:10px;background:#092f56;color:#fff;padding:7px;font-size:21px;font-weight:bold}
+.skinChoice small{font-size:11px}.skinChoice.selected{border-color:#ffe45c;background:#175b88;box-shadow:0 0 12px #ffe45c66}
+.mapGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.mapChoice{border:2px solid #75b9eb;border-radius:12px;background:#0a3970;color:white;padding:7px;font-weight:bold}
+.mapChoice.selected{border-color:#ffe45c;box-shadow:0 0 12px #ffe45c66}
+.mapThumb{height:75px;display:flex;align-items:center;justify-content:center;border-radius:8px;margin-bottom:7px;font-size:23px}
+.blueMap{background:radial-gradient(#39a9e8,#093b84)}.forestMap{background:radial-gradient(#4fc66d,#06492f)}.lavaMap{background:radial-gradient(#ff9c32,#7b170d)}.candyMap{background:radial-gradient(#ffb6ed,#6539a8)}
+.shopGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.shopGrid>div{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 5px;border-radius:11px;background:#0a3970;border:1px solid #72b8ee66;font-size:22px}
+.shopGrid b{font-size:12px}.shopGrid small{font-size:10px;color:#c5e4ff;text-align:center}
+.shopGrid button{margin-top:4px;border:1px solid #ffe98b;border-radius:8px;background:linear-gradient(#ffdf62,#f59b1e);color:#442b08;font-weight:bold;padding:7px;width:100%;font-size:11px}
+@media(max-width:520px){.menuContent{padding:12px;min-height:280px}.tab{font-size:10px;min-width:72px;padding:9px 5px}.brandMark{font-size:12px}.heroLogo{font-size:30px}.workshopLayout{grid-template-columns:105px 1fr}.snakePreview{min-height:160px;font-size:58px}.shopGrid{grid-template-columns:repeat(2,1fr)}}
+</style></head><body>
+<canvas id="c"></canvas>
+<div id="missionHud" style="position:fixed;top:12px;left:50%;transform:translateX(-50%);width:min(300px,38vw);padding:9px 12px;background:rgba(4,35,75,.82);border:1px solid #8bcaff44;border-radius:7px;color:#fff;font-size:12px;z-index:4;pointer-events:none">
+ <div style="display:flex;align-items:center;gap:8px"><span style="font-size:22px">🎁</span><span>লক্ষ্য: ৮০,০০০ স্কোর</span></div>
+ <div style="height:8px;background:#061b35;border-radius:8px;margin:6px 0 0 30px;overflow:hidden"><div id="missionFill" style="height:100%;width:0%;background:#18c65b"></div></div>
+</div>
+<div id="coinHud" style="position:fixed;right:12px;top:12px;min-width:92px;padding:8px 13px;background:rgba(4,35,75,.82);border-radius:7px;color:white;text-align:right;font-weight:bold;z-index:4;pointer-events:none">🪙 <span id="coinCount">0</span></div>
+<canvas id="map" width="108" height="108"></canvas><div id="board"><strong>🏆 লিডারবোর্ড</strong><ol id="leaders"></ol></div><div class="hud"><div class="pill">🐉 MBD MYTHICAL WORMS</div><div class="pill">স্কোর: <span id="score">0</span></div></div><div id="powerStatus"></div><div id="hint">এক আঙুলে চালাও • দ্বিতীয় আঙুল স্ক্রিনে রাখলেই গতি বাড়বে</div><button id="boost">⚡ POWER</button>
+<div id="start">
+ <div class="menuShell">
+  <header class="menuTop"><div class="brandMark">🐉 <span>MBD SAAB<br><b>MYTHICAL WORMS</b></span></div><div class="wallet">🪙 <b id="menuCoins">0</b></div></header>
+  <nav class="menuTabs">
+   <button class="tab active" data-page="home">🏠 Home</button>
+   <button class="tab" data-page="settings">⚙️ Settings</button>
+   <button class="tab" data-page="workshop">🛠 Workshop</button>
+   <button class="tab" data-page="maps">🌍 Maps</button>
+   <button class="tab" data-page="shop">🛒 Shop</button>
+  </nav>
+  <main class="menuContent">
+   <section class="menuPage active" id="page-home">
+    <div class="heroLogo">MYTHICAL<br><span>WORMS</span></div>
+    <p class="subline">খাবার খাও • বড় হও • Arena জয় করো</p>
+    <div class="homePreview">🐉 <span>তোমার নির্বাচিত সাপ</span> <b id="homeSkinName">MYTHICAL</b></div>
+    <button class="play" id="play">⚔️ TO BATTLE!</button>
+    <div class="homeShortcuts"><button data-goto="workshop">🐲 সাপ বেছে নাও</button><button data-goto="maps">🌍 ম্যাপ বেছে নাও</button></div>
+   </section>
+   <section class="menuPage" id="page-settings">
+    <h2>⚙️ Settings</h2><p class="subline">গেম নিজের মতো সাজাও</p>
+    <div class="settingRow"><span>🎵 Music</span><button class="toggle on" data-toggle="music">ON</button></div>
+    <div class="settingRow"><span>🔊 Sound effects</span><button class="toggle on" data-toggle="sound">ON</button></div>
+    <div class="settingRow"><span>🎮 Control</span><select id="controlMode"><option value="touch">Touch steering</option><option value="relative">Relative touch</option></select></div>
+    <div class="settingRow"><span>✨ Visual effects</span><button class="toggle on" data-toggle="effects">ON</button></div>
+    <p class="smallNote">দ্বিতীয় আঙুল স্ক্রিনে রাখলে POWER বাড়বে।</p>
+   </section>
+   <section class="menuPage" id="page-workshop">
+    <h2>🛠 Workshop</h2><p class="subline">তোমার সাপের চেহারা বেছে নাও</p>
+    <div class="workshopLayout"><div class="snakePreview" id="snakePreview">🐉<small id="previewName">MYTHICAL</small></div><div class="skinGrid" id="skinPicker">
+     <button class="skinChoice selected" data-skin="dragon">🐉<small>Mythical</small></button>
+     <button class="skinChoice" data-skin="fire">🔥<small>Fire</small></button>
+     <button class="skinChoice" data-skin="tiger">🐯<small>Tiger</small></button>
+     <button class="skinChoice" data-skin="green">🌿<small>Thorn</small></button>
+     <button class="skinChoice" data-skin="armor">⚔️<small>Armor</small></button>
+     <button class="skinChoice" data-skin="fox">🦊<small>Fox</small></button>
+    </div></div>
+    <p class="smallNote">এখন সব স্কিন পরীক্ষার জন্য খোলা আছে।</p>
+   </section>
+   <section class="menuPage" id="page-maps">
+    <h2>🌍 Choose Arena</h2><p class="subline">খেলার মাঠ বেছে নাও</p>
+    <div class="mapGrid">
+     <button class="mapChoice selected" data-map="blue"><span class="mapThumb blueMap">✦ ✦ ✦</span><b>Blue Arena</b></button>
+     <button class="mapChoice" data-map="forest"><span class="mapThumb forestMap">🌳 🌿</span><b>Green Forest</b></button>
+     <button class="mapChoice" data-map="lava"><span class="mapThumb lavaMap">🔥 ♨️</span><b>Dragon Lava</b></button>
+     <button class="mapChoice" data-map="candy"><span class="mapThumb candyMap">🍬 ✨</span><b>Candy Land</b></button>
+    </div>
+   </section>
+   <section class="menuPage" id="page-shop">
+    <h2>🛒 Power Shop</h2><p class="subline">কয়েন দিয়ে পাওয়ার আইটেম নাও</p>
+    <div class="shopGrid">
+     <div>🧲 <b>Magnet</b><small>খাবার টানবে</small><button data-buy="magnet">100 🪙</button></div>
+     <div>✖️ <b>Multiplier</b><small>স্কোর ×5</small><button data-buy="multi">100 🪙</button></div>
+     <div>📡 <b>Radar</b><small>সাপ খুঁজে দেবে</small><button data-buy="radar">100 🪙</button></div>
+     <div>⚡ <b>Speed</b><small>গতি বাড়াবে</small><button data-buy="speed">100 🪙</button></div>
+     <div>🔄 <b>Mobility</b><small>চালনা সহজ করবে</small><button data-buy="mobility">100 🪙</button></div>
+     <div>🔍 <b>Zoom</b><small>দূর পর্যন্ত দেখাবে</small><button data-buy="zoom">100 🪙</button></div>
+    </div><p class="smallNote" id="shopMessage">খেলার মাধ্যমে কয়েন সংগ্রহ করো।</p>
+   </section>
+  </main>
+  <footer class="menuFooter"><span>🐍 MBD SAAB MYTHICAL WORMS</span><button id="closeMenu" hidden>▶ গেমে ফিরো</button></footer>
+ </div>
+</div>
+<script>
+(()=>{let selectedSkin='dragon';const skinPalettes={dragon:{green:'#36d947',gold:'#f7e54c',purple:'#923bdc',dark:'#245b2d',glow:'#c5ff52'},fire:{green:'#ff7a18',gold:'#ffe45c',purple:'#a51d25',dark:'#8a260e',glow:'#ffb02e'},tiger:{green:'#e8edf7',gold:'#242b3b',purple:'#7e58c9',dark:'#22283b',glow:'#b9a6ff'},green:{green:'#39c92e',gold:'#e8ef42',purple:'#913bd8',dark:'#246d28',glow:'#b7ff48'},armor:{green:'#344a9e',gold:'#f0b94d',purple:'#7b4ed1',dark:'#182b68',glow:'#73d7ff'},fox:{green:'#f07824',gold:'#ffc65a',purple:'#b94a1d',dark:'#81330f',glow:'#ffad45'}};const c=document.getElementById('c'),x=c.getContext('2d'),S=document.getElementById('start'),scoreEl=document.getElementById('score');let w,h,d=1,s=[],f=[],powerItems=[],bots=[],a=0,score=0,run=false,fast=false,last=0;let activePowers={};const powerTypes=[['magnet','🧲','MAGNET'],['multi','✖️','×5'],['radar','📡','RADAR'],['speed','⚡','SPEED'],['mobility','🔄','MOBILITY'],['zoom','🔍','ZOOM']];const size=2000;
+function resize(){d=Math.min(devicePixelRatio||1,1.25);w=innerWidth;h=innerHeight;c.width=w*d;c.height=h*d;x.setTransform(d,0,0,d,0,0)}addEventListener('resize',resize);resize();
+function reset(){activePowers={};powerItems=[];for(let i=0;i<12;i++){const z=powerTypes[i%powerTypes.length];powerItems.push({x:180+Math.random()*(size-360),y:180+Math.random()*(size-360),type:z[0],emoji:z[1],label:z[2],r:19})}document.getElementById('powerStatus').innerHTML='';score=0;scoreEl.textContent=0;a=0;s=[];for(let i=0;i<22;i++)s.push({x:size/2-i*10,y:size/2});f=[];const veggies=['🥕','🥦','🍅','🥬','🌽','🥒','🍆','🫑'];for(let i=0;i<140;i++)f.push({x:Math.random()*size,y:Math.random()*size,r:10,emoji:veggies[i%veggies.length]});/* a long, orderly vegetable trail across the arena */for(let i=0;i<42;i++)f.push({x:420+i*27,y:760,r:12,emoji:veggies[i%veggies.length],foodLine:true});
+bots=[];for(let j=0;j<20;j++){const hue=(j*137.508)%360;const botColor=`hsl(${hue},88%,62%)`;let bx=250+Math.random()*(size-500),by=250+Math.random()*(size-500),ang=Math.random()*Math.PI*2,body=[];for(let k=0;k<18;k++)body.push({x:bx-Math.cos(ang)*k*9,y:by-Math.sin(ang)*k*9});const skins=[{green:'#ff7a18',gold:'#ffe45c',purple:'#a51d25',dark:'#8a260e',glow:'#ffb02e'},{green:'#e8edf7',gold:'#242b3b',purple:'#7e58c9',dark:'#22283b',glow:'#b9a6ff'},{green:'#39c92e',gold:'#e8ef42',purple:'#913bd8',dark:'#246d28',glow:'#b7ff48'},{green:'#1e9b65',gold:'#e8f3d0',purple:'#6746a2',dark:'#15583f',glow:'#7bffc2'},{green:'#344a9e',gold:'#f0b94d',purple:'#7b4ed1',dark:'#182b68',glow:'#73d7ff'},{green:'#f07824',gold:'#ffc65a',purple:'#b94a1d',dark:'#81330f',glow:'#ffad45'}];bots.push({body,ang,color:botColor,turn:0,name:'সাপ '+(j+1),points:0,face:['🐉','🐯','🦁','🦊','🐲','🦓','🐍'][j%7],palette:skins[j%skins.length]})}}
+const activePointers=new Map();let steeringPointer=null;
+function aim(e){let px=e.clientX-w/2,py=e.clientY-h/2;if(Math.hypot(px,py)>8)a=Math.atan2(py,px)}
+c.addEventListener('pointerdown',e=>{
+ e.preventDefault();activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(steeringPointer===null){steeringPointer=e.pointerId;aim(e)}
+ fast=activePointers.size>=2;
+});
+c.addEventListener('pointermove',e=>{if(activePointers.has(e.pointerId)&&e.pointerId===steeringPointer)aim(e)});
+function releasePointer(e){activePointers.delete(e.pointerId);if(e.pointerId===steeringPointer){steeringPointer=activePointers.size?Array.from(activePointers.keys())[0]:null;if(steeringPointer!==null){const q=activePointers.get(steeringPointer);if(q)aim({clientX:q.x,clientY:q.y})}}fast=activePointers.size>=2||boostHeld}
+['pointerup','pointercancel','lostpointercapture'].forEach(k=>c.addEventListener(k,releasePointer));
+let boostHeld=false,b=document.getElementById('boost');
+b.addEventListener('pointerdown',e=>{e.preventDefault();boostHeld=true;fast=true;b.classList.add('active');b.setPointerCapture?.(e.pointerId)});
+['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(k=>b.addEventListener(k,()=>{boostHeld=false;fast=activePointers.size>=2;b.classList.remove('active')}));
+let uiFrame=0;function draw(){let h0=s[0],cx=h0.x,cy=h0.y;x.clearRect(0,0,w,h);x.fillStyle='#ffffff19';for(let xx=Math.floor((cx-w/2)/50)*50;xx<cx+w/2+50;xx+=50)for(let yy=Math.floor((cy-h/2)/50)*50;yy<cy+h/2+50;yy+=50){x.beginPath();x.arc(xx-cx+w/2,yy-cy+h/2,1.5,0,7);x.fill()}powerItems.forEach(q=>{const px=q.x-cx+w/2,py=q.y-cy+h/2;if(px>-35&&px<w+35&&py>-35&&py<h+35){x.save();x.shadowColor='#65dfff';x.shadowBlur=17;x.fillStyle='#123f89';x.strokeStyle='#b8eaff';x.lineWidth=3;x.beginPath();x.arc(px,py,20,0,Math.PI*2);x.fill();x.stroke();x.shadowBlur=0;x.font='23px Arial';x.textAlign='center';x.textBaseline='middle';x.fillText(q.emoji,px,py);x.restore();}});
+f.forEach(q=>{let px=q.x-cx+w/2,py=q.y-cy+h/2;if(px>-24&&px<w+24&&py>-24&&py<h+24){
+  const veg=q.emoji||'🥕';
+  x.fillStyle='#d7ff65';x.beginPath();x.arc(px,py,12,0,Math.PI*2);x.fill();
+  x.shadowBlur=0;x.strokeStyle='#397a24';x.lineWidth=2;x.stroke();
+  x.font='22px "Noto Color Emoji",Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(veg,px,py+1);
+  }});
+
+function dragonBody(body, palette, headEmoji, isPlayer=false){
+  // Detailed armored body: glossy scales, bright belly plates and small dorsal horns.
+  for(let i=body.length-1;i>=1;i-=(isPlayer?1:2)){
+    const p=body[i], prev=body[Math.max(0,i-1)], next=body[Math.min(body.length-1,i+1)];
+    const px=p.x-cx+w/2, py=p.y-cy+h/2;
+    if(px<-45||px>w+45||py<-45||py>h+45) continue;
+    const ang=Math.atan2(prev.y-next.y,prev.x-next.x);
+    const r=Math.max(7,(isPlayer?15:13)-i*.018);
+    x.save();x.translate(px,py);x.rotate(ang);
+    x.shadowColor=palette.glow;x.shadowBlur=7;
+    // Main rounded segment
+    x.fillStyle=palette.green;x.strokeStyle=palette.dark;x.lineWidth=1.5;
+    x.beginPath();x.ellipse(0,0,r*1.05,r*.78,0,0,Math.PI*2);x.fill();x.stroke();
+    // Belly plate
+    x.shadowBlur=0;x.fillStyle=palette.gold;
+    x.beginPath();x.ellipse(-r*.08,0,r*.72,r*.43,0,0,Math.PI*2);x.fill();
+    // Center armor ridge and paired scale marks
+    x.strokeStyle=palette.purple;x.lineWidth=Math.max(1,r*.12);
+    x.beginPath();x.moveTo(-r*.48,0);x.quadraticCurveTo(0,-r*.28,r*.48,0);x.stroke();
+    x.strokeStyle=palette.dark;x.lineWidth=1;
+    x.beginPath();x.moveTo(-r*.25,-r*.35);x.lineTo(-r*.05,-r*.08);x.moveTo(r*.18,-r*.35);x.lineTo(r*.34,-r*.08);x.stroke();
+    // Small dorsal spikes
+    x.fillStyle=palette.gold;x.strokeStyle=palette.dark;x.lineWidth=.8;
+    x.beginPath();x.moveTo(-r*.35,-r*.55);x.lineTo(-r*.12,-r*1.12);x.lineTo(r*.02,-r*.55);x.closePath();x.fill();x.stroke();
+    x.restore();
+  }
+  const head=body[0], tail=body[1]||{x:head.x-1,y:head.y};
+  const hx=head.x-cx+w/2, hy=head.y-cy+h/2, angle=Math.atan2(head.y-tail.y,head.x-tail.x);
+  x.save();x.translate(hx,hy);x.rotate(angle);
+  x.shadowColor=palette.glow;x.shadowBlur=16;
+  // Dragon head silhouette
+  x.fillStyle=palette.green;x.strokeStyle=palette.dark;x.lineWidth=2.4;
+  x.beginPath();x.moveTo(20,0);x.lineTo(12,-10);x.lineTo(4,-12);x.lineTo(-5,-17);x.lineTo(-4,-8);x.lineTo(-15,-13);x.lineTo(-12,-3);x.lineTo(-19,0);x.lineTo(-12,5);x.lineTo(-15,14);x.lineTo(-4,8);x.lineTo(-5,17);x.lineTo(5,12);x.lineTo(13,9);x.closePath();x.fill();x.stroke();
+  x.shadowBlur=0;
+  // Brow / snout armor
+  x.fillStyle=palette.purple;x.beginPath();x.ellipse(4,0,11,8,0,0,Math.PI*2);x.fill();
+  x.fillStyle=palette.gold;x.beginPath();x.ellipse(13,0,6,5,0,0,Math.PI*2);x.fill();
+  // Two expressive eyes
+  x.fillStyle='#fff';x.beginPath();x.ellipse(5,-7,4.2,3.8,0,0,Math.PI*2);x.ellipse(5,7,4.2,3.8,0,0,Math.PI*2);x.fill();
+  x.fillStyle='#101b2b';x.beginPath();x.arc(6,-7,1.9,0,Math.PI*2);x.arc(6,7,1.9,0,Math.PI*2);x.fill();
+  // Horns and nostrils
+  x.fillStyle=palette.gold;x.strokeStyle=palette.dark;x.lineWidth=1;
+  x.beginPath();x.moveTo(-5,-10);x.lineTo(-11,-20);x.lineTo(1,-12);x.closePath();x.fill();x.stroke();
+  x.beginPath();x.moveTo(-5,10);x.lineTo(-11,20);x.lineTo(1,12);x.closePath();x.fill();x.stroke();
+  x.fillStyle=palette.dark;x.beginPath();x.arc(17,-2,1.2,0,Math.PI*2);x.arc(17,2,1.2,0,Math.PI*2);x.fill();
+  // Give every creature its own recognizable face instead of one repeated head.
+  // Bot identity is carried by its face emoji (dragon, tiger, lion, fox, etc.).
+  if(!isPlayer && headEmoji){
+    x.shadowBlur=0; x.font='25px \"Noto Color Emoji\", Arial, sans-serif';
+    x.textAlign='center'; x.textBaseline='middle'; x.save(); x.rotate(-angle); x.fillText(headEmoji,0,0); x.restore();
+  }
+  // No tongue: clean closed-mouth creature design.
+  x.restore();
+}
+
+const dragonPalette={green:'#42c52d',gold:'#f2df36',purple:'#8e39d5',dark:'#286b20',glow:'#b4ff43'};
+const currentRanks=[{kind:'player',score:score,body:s}].concat(bots.map(bot=>({kind:'bot',score:bot.points+bot.body.length,body:bot.body,bot}))).sort((a,b)=>b.score-a.score);
+bots.forEach(bot=>{const q=bot.body[0];if(q&&Math.abs(q.x-cx)<w*.75+220&&Math.abs(q.y-cy)<h*.75+220)dragonBody(bot.body,bot.palette||dragonPalette,bot.face)});
+if(currentRanks.length){
+ const leader=currentRanks[0], lh=leader.body[0];
+if(lh){
+ const crownX=lh.x, crownY=lh.y-34;
+ x.save();x.font='bold 28px Arial';x.textAlign='center';x.textBaseline='middle';
+ x.shadowColor='#ffd84a';x.shadowBlur=15;x.fillText('👑',crownX,crownY);x.restore();
+}
+ const lx=lh.x-cx+w/2, ly=lh.y-cy+h/2;
+ if(lx>-40&&lx<w+40&&ly>-50&&ly<h+30){
+  x.save();x.font='25px Arial';x.textAlign='center';x.textBaseline='middle';
+  x.shadowColor='#ffe45b';x.shadowBlur=14;x.fillText('👑',lx,ly-29);x.restore();
+ }
+}
+dragonBody(s,skinPalettes[selectedSkin],'🐉',true);
+
+if(++uiFrame%6!==0)return;let mc=document.getElementById('map'),mx=mc.getContext('2d');mx.clearRect(0,0,108,108);mx.fillStyle='#092a3d';mx.fillRect(0,0,108,108);mx.strokeStyle='#4c91ad';mx.strokeRect(1,1,106,106);mx.fillStyle='#8affcf';mx.beginPath();mx.arc(54+(cx-size/2)/size*90,54+(cy-size/2)/size*90,3,0,7);mx.fill();bots.forEach(bot=>{let q=bot.body[0];if(activePowers.radar||Math.abs(q.x-cx)<350&&Math.abs(q.y-cy)<350){mx.fillStyle=bot.color;mx.beginPath();mx.arc(4+q.x/size*100,4+q.y/size*100,1.8,0,7);mx.fill()}});
+let ranks=[{name:'তুমি',score:score}].concat(bots.map((bot,i)=>({name:bot.name,score:bot.points+bot.body.length}))).sort((a,b)=>b.score-a.score).slice(0,5);document.getElementById('leaders').innerHTML=ranks.map(q=>'<li>'+q.name+' — '+q.score+'</li>').join('')}
+function over(){if(s.length){const deadHead=s[0];f.push({x:deadHead.x,y:deadHead.y,r:15,emoji:'🪙',token:true});}run=false;S.style.display='flex';showPage('home');document.querySelector('#page-home .subline').textContent='গেম ওভার! তোমার স্কোর: '+score+' — আবার খেলবে?';document.getElementById('play').textContent='আবার খেলো'}
+let collisionFrame=0,lastRender=0;function step(t){if(!run)return;if(t-lastRender<30){requestAnimationFrame(step);return}lastRender=t;let dt=Math.min((t-last)/16.67||1,2);last=t;let p=s[0];for(const key of Object.keys(activePowers)){activePowers[key]-=dt*16.67;if(activePowers[key]<=0)delete activePowers[key]}document.getElementById('powerStatus').innerHTML=Object.entries(activePowers).map(([k,ms])=>{const q=powerTypes.find(z=>z[0]===k);return '<span class="powerTag">'+q[1]+' '+q[2]+' '+Math.ceil(ms/1000)+'s</span>'}).join('');
+if(activePowers.magnet){for(const food of f){const dx=p.x-food.x,dy=p.y-food.y,dist=Math.hypot(dx,dy);if(dist<230&&dist>2){food.x+=dx/dist*2.2;food.y+=dy/dist*2.2}}}
+let v=fast?6.4:3.8;if(activePowers.speed)v*=1.75;if(activePowers.mobility)v*=1.25;let nx=p.x+Math.cos(a)*v*dt,ny=p.y+Math.sin(a)*v*dt;
+let powerHit=powerItems.findIndex(q=>Math.hypot(q.x-p.x,q.y-p.y)<27);if(powerHit>=0){const got=powerItems.splice(powerHit,1)[0];activePowers[got.type]=10000;if(got.type==='multi')activePowers.multi=10000;const z=powerTypes.find(q=>q[0]===got.type);powerItems.push({x:160+Math.random()*(size-320),y:160+Math.random()*(size-320),type:got.type,emoji:got.emoji,label:got.label,r:19});}
+bots.forEach(bot=>{bot.turn-=dt;if(bot.turn<=0){bot.ang+=(Math.random()-.5)*1.1;bot.turn=18+Math.random()*35}let head=bot.body[0],bx=head.x+Math.cos(bot.ang)*2.0*dt,by=head.y+Math.sin(bot.ang)*2.0*dt;if(bx<80||by<80||bx>size-80||by>size-80)bot.ang+=Math.PI*.65;bot.body.unshift({x:bx,y:by});bot.body.pop();let foodIndex=-1;if((collisionFrame%3)===0){for(let fi=0;fi<f.length;fi++){const fq=f[fi],fdx=fq.x-bx,fdy=fq.y-by;if(fdx*fdx+fdy*fdy<324){foodIndex=fi;break}}}if(foodIndex>=0){const eaten=f.splice(foodIndex,1)[0];for(let grow=0;grow<(eaten.token?6:4);grow++)bot.body.push({...bot.body[bot.body.length-1]});bot.points+=10;if(eaten.foodLine)f.push({x:420+Math.random()*1100,y:760,r:12,emoji:['🥕','🥦','🍅','🥬','🌽','🥒'][Math.floor(Math.random()*6)],foodLine:true});else if(!eaten.token)f.push({x:Math.random()*size,y:Math.random()*size,r:10,emoji:['🥕','🥦','🍅','🥬','🌽','🥒'][Math.floor(Math.random()*6)]})}});if(nx<10)nx=size-10;if(ny<10)ny=size-10;if(nx>size-10)nx=10;if(ny>size-10)ny=10;s.unshift({x:nx,y:ny});let ate=-1;for(let fi=0;fi<f.length;fi++){const q=f[fi],dx=q.x-nx,dy=q.y-ny;if(dx*dx+dy*dy<361){ate=fi;break}}if(ate>=0){const eaten=f.splice(ate,1)[0];score+=(eaten.token?25:10)*(activePowers.multi?5:1);scoreEl.textContent=score;let mf=document.getElementById('missionFill');if(mf)mf.style.width=Math.min(100,score/80000*100)+'%';if(eaten.foodLine)f.push({x:420+Math.random()*1100,y:760,r:12,emoji:['🥕','🥦','🍅','🥬','🌽','🥒','🍆','🫑'][Math.floor(Math.random()*8)],foodLine:true});else if(!eaten.token)for(let k=0;k<3;k++)f.push({x:Math.random()*size,y:Math.random()*size,r:10,emoji:['🥕','🥦','🍅','🥬','🌽','🥒','🍆','🫑'][Math.floor(Math.random()*8)]})}else s.pop();/* Player does not die from touching its own body. */
+// Player head touching any rival snake body = player loses.
+for(const bot of bots){
+  for(let i=0;i<bot.body.length;i+=2){
+    const dx=bot.body[i].x-nx,dy=bot.body[i].y-ny;if(dx*dx+dy*dy<361){over();return}
+  }
+}
+// Rival snake heads touching the player's body or another rival's body = that rival disappears.
+if(++collisionFrame%4===0)bots=bots.filter((bot,idx)=>{
+  const bh=bot.body[0];
+  const hitPlayer=s.some((p,i)=>i>7&&Math.hypot(p.x-bh.x,p.y-bh.y)<18);
+  const hitOther=bots.some((other,j)=>j!==idx&&other.body.some((p,k)=>k>5&&k%2===0&&Math.hypot(p.x-bh.x,p.y-bh.y)<17));
+  const hitOwn=bot.body.some((p,k)=>k>8&&Math.hypot(p.x-bh.x,p.y-bh.y)<15);
+  if(hitPlayer||hitOther||hitOwn){
+   const drop=bot.body[0];
+   f.push({x:drop.x,y:drop.y,r:15,emoji:'🪙',token:true});
+   // Computer snake respawns from the same left-side entry zone.
+   const spawnX=150+Math.random()*180;
+   const spawnY=100+Math.random()*(size-200);
+   bot.ang=0;
+   bot.turn=35+Math.random()*30;
+   bot.body=[];
+   for(let k=0;k<18;k++)bot.body.push({x:spawnX-k*9,y:spawnY});
+   bot.points=0;
+  }
+  return true;
+});
+draw();requestAnimationFrame(step)}
+
+
+const pageButtons=document.querySelectorAll('.tab');
+function showPage(name){document.querySelectorAll('.menuPage').forEach(p=>p.classList.toggle('active',p.id==='page-'+name));pageButtons.forEach(b=>b.classList.toggle('active',b.dataset.page===name));}
+pageButtons.forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
+document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.goto)));
+document.querySelectorAll('[data-toggle]').forEach(b=>b.addEventListener('click',()=>{b.classList.toggle('on');b.textContent=b.classList.contains('on')?'ON':'OFF'}));
+const skinLabels={dragon:'MYTHICAL',fire:'FIRE',tiger:'TIGER',green:'THORN',armor:'ARMOR',fox:'FOX'};
+document.querySelectorAll('.skinChoice').forEach(btn=>btn.addEventListener('click',()=>{selectedSkin=btn.dataset.skin;document.querySelectorAll('.skinChoice').forEach(q=>q.classList.toggle('selected',q===btn));document.getElementById('previewName').textContent=skinLabels[selectedSkin];document.getElementById('homeSkinName').textContent=skinLabels[selectedSkin];document.getElementById('snakePreview').textContent=btn.textContent.trim().split('\\n')[0];}));
+let selectedMap='blue';
+const mapThemes={blue:['#287fc4','#155b9d','#0b3d76'],forest:['#3c9b58','#17663c','#073d2c'],lava:['#bd5a25','#7c281c','#3c1018'],candy:['#a75bc7','#7142a7','#3a236d']};
+document.querySelectorAll('.mapChoice').forEach(btn=>btn.addEventListener('click',()=>{selectedMap=btn.dataset.map;document.querySelectorAll('.mapChoice').forEach(q=>q.classList.toggle('selected',q===btn));const t=mapThemes[selectedMap];c.style.background=`radial-gradient(circle at 50% 45%,${t[0]} 0%,${t[1]} 68%,${t[2]} 100%)`;}));
+let shopCoins=0;document.querySelectorAll('[data-buy]').forEach(btn=>btn.addEventListener('click',()=>{document.getElementById('shopMessage').textContent='এখন তোমার কাছে '+shopCoins+' কয়েন আছে। খেলায় কয়েন সংগ্রহ করো!'}));
+document.getElementById('closeMenu').addEventListener('click',()=>{S.style.display='none';run=true;last=performance.now();requestAnimationFrame(step)});
+
+document.getElementById('play').onclick=()=>{reset();S.style.display='none';run=true;last=performance.now();requestAnimationFrame(step)};reset();draw()})();
+</script></body></html>
